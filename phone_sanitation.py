@@ -2,7 +2,7 @@ import pandas as pd
 import re
 
 # Carregar o arquivo Excel 
-excelFile = "test-phone.xlsx"
+excelFile = "telefone-sanear.xlsx"
 df = pd.read_excel(excelFile, dtype=str)
 
 # Lista das colunas que serão alteradas
@@ -10,20 +10,25 @@ phoneColumns=["homePhone", "businessPhone", "phone"]
 
 # Limpar e formatar os números de telefone
 def clearNumberPhone(number):
-    if pd.notna(number):  # Verifica se o valor não é nulo
+    if pd.notna(number) and number.strip():  # Verifica se o valor não é nulo
         number = re.sub(r"\D", "", number)  # Remove tudo que não for número
         number = re.sub(r"^55", "", number)  # Remove o prefixo 55 do começo do número
-        return number
+        return f"+55{number}"  # Adiciona +55 no início do número
     return ""
 
 # Verificar se o telefone tem tamanho válido
 def charactersQuantity(number):
-    if 10 <= len(number) <= 11:
+    if not number:  # Se a célula estiver vazia
+        return "(Vazio)"
+    if 13 <= len(number) <= 14:
         return "Não"  # Número válido
     return "Sim"  # Número inválido
 
+
 # Identificar números sequenciais ou repetidos
 def repeteadAndSequential(number):
+    if not number:  # Se a célula estiver vazia
+        return "(Vazio)"
     if re.search(r"(012345|123456|234567|345678|456789|567890)", number):  # Sequências comuns
         return "Sim"
     if re.search(r"^(.)\1{5,}$", number):  # Exemplo: 1111111111 (número repetido)
@@ -38,6 +43,6 @@ for column in phoneColumns:
         df[f"{column}_suspeito"] = df[column].apply(repeteadAndSequential)  # Cria coluna para validar se o número possui sequência numérica ou repetição
 
 # Salvar o resultado em um novo arquivo Excel
-df.to_excel("test-phoneSANEADO.xlsx", index=False)
+df.to_excel("telefone-saneado.xlsx", index=False)
 
-print("Processo concluído! Arquivo salvo como 'dados_saneados.xlsx'.")
+print("Processo concluído! Arquivo salvo")
